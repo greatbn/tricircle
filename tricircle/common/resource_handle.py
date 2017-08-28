@@ -15,7 +15,7 @@
 
 import keystoneauth1.identity.generic as auth_identity
 from keystoneauth1 import session
-
+from keystoneauth1.identity import v3
 from neutronclient.common import exceptions as q_exceptions
 from neutronclient.neutron import client as q_client
 from oslo_config import cfg
@@ -101,12 +101,14 @@ class NeutronResourceHandle(ResourceHandle):
         'flow_classifier': LIST | CREATE | DELETE | GET | UPDATE}
 
     def _get_client(self, cxt):
-        # token = cxt.auth_token
-        # if not token and cxt.is_admin:
-        #     token = self.get_admin_token(cxt.tenant)
-        session = self.get_keystone_session(project_id=cxt.project_id)
+        token = cxt.auth_token
+        if not token and cxt.is_admin:
+            token = self.get_admin_token(cxt.tenant)
+        auth = v3.Token(auth_url=cfg.CONF.client.identity_url,
+                        token=token, project_id=cxt.project_id)
+        sess = session.Session(auth=auth)
         return q_client.Client('2.0',
-                               session=session,
+                               session=sess,
                                endpoint_url=self.endpoint_url,
                                timeout=cfg.CONF.client.neutron_timeout)
 
