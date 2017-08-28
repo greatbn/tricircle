@@ -101,12 +101,12 @@ class NeutronResourceHandle(ResourceHandle):
         'flow_classifier': LIST | CREATE | DELETE | GET | UPDATE}
 
     def _get_client(self, cxt):
-        token = cxt.auth_token
-        if not token and cxt.is_admin:
-            token = self.get_admin_token(cxt.tenant)
+        # token = cxt.auth_token
+        # if not token and cxt.is_admin:
+        #     token = self.get_admin_token(cxt.tenant)
+        session = self.get_keystone_session(project_id=cxt.project_id)
         return q_client.Client('2.0',
-                               token=token,
-                               auth_url=self.auth_url,
+                               session=session,
                                endpoint_url=self.endpoint_url,
                                timeout=cfg.CONF.client.neutron_timeout)
 
